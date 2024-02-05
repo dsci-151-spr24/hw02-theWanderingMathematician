@@ -139,6 +139,14 @@ college_recent_grads %>%
 
 1.  Using what you've learned so far, arrange the data in descending order with respect to proportion of women in a major, and display only the major, the total number of people with major, and proportion of women. Show only the top 3 majors by adding `top_n(3)` at the end of the pipeline.
 
+```{r}
+#| label: top_women_proportion
+college_recent_grads %>%
+  select(major, total, sharewomen) %>%
+  arrange(desc(sharewomen)) %>%
+  top_n(3)
+```
+
 ## How do the distributions of median income compare across major categories?
 
 ```{marginfigure}
@@ -149,6 +157,8 @@ There are three types of incomes reported in this data frame: `p25th`, `median`,
 These correspond to the 25th, 50th, and 75th percentiles of the income distribution of sampled individuals for a given major.
 
 2.  Why do we often choose the median, rather than the mean, to describe the typical income of a group of people?
+
+- *Because, unlike the mean value, the median doesn't change as much when a small number of extreme outliers are presented on one side of the distribution of the data. The mean would average them out with the rest, and would become quite skewed, while the median would only change as much as if the extra observations were added at the top side of the normal range of observations.*
 
 The question we want to answer "How do the distributions of median income compare across major categories?".
 We need to do a few things to answer this question: First, we need to group the data by `major_category`.
@@ -176,40 +186,68 @@ You might ask yourself: "What would be a meaningful difference in median incomes
 
 3.  Try binwidths of \$1000 and \$5000 and choose one. Explain your reasoning for your choice. Note that the binwidth is an argument for the `geom_histogram` function. So to specify a binwidth of \$1000, you would use `geom_histogram(binwidth = 1000)`.
 
+```{r}
+ggplot(college_recent_grads, aes(x = median)) +
+  geom_histogram(binwidth =  5000)
+```
+
+- *I chose the higher binwidth value of $5000 because, when viewed at a binwidth if $1000, there are gaps in the data in between many large peaks (especially notable around multiples of $10,000), while the overall distribution is more easily visible at a binwidth of $5000.*
+
 We can also calculate summary statistics for this distribution using the `summarise` function:
 
-```{r}
-college_recent_grads %>%
+```{r eval =TRUE}
+recent_grads_summary <- college_recent_grads %>%
   summarise(min = min(median), max = max(median),
             mean = mean(median), med = median(median),
             sd = sd(median), 
             q1 = quantile(median, probs = 0.25),
             q3 = quantile(median, probs = 0.75))
+
+recent_grads_summary
 ```
 
-4.  Based on the shape of the histogram you created in the previous exercise, determine which of these summary statistics is useful for describing the distribution.
-    Write up your description (remember shape, center, spread, any unusual observations) and include the summary statistic output as well.
+  4.Based on the shape of the histogram you created in the previous exercise, determine which of these summary statistics is useful for describing the distribution. 
+  Write up your description (remember shape, center, spread, any unusual observations) and include the summary statistic output as well.
+    
+- *The distribution of the graph is right-skewed, a fact which is exacerbated by the existence of a single outlier far to the right side of the graph. Because of the skewed-ness of this graph, using the median and quartiles would probably be a better idea than using the mean and standard deviation.*
+
+- *The histogram is right-skewed, with a median of $`r format(recent_grads_summary$med, scientific = FALSE)` and an IQR of $`r format(recent_grads_summary$q3 - recent_grads_summary$q1, scientific = FALSE)`. It also has an outlier at $`r format(filter(college_recent_grads, median >= 100000)$median, scientific = FALSE)`, very far away from the next-highest value, significantly adding to the skew of the distribution.*
 
 5.  Plot the distribution of `median` income using a histogram, faceted by `major_category`.
     Use the `binwidth` you chose in the earlier exercise.
+
+```{r}
+college_recent_grads %>%
+  ggplot(aes(x = median, fill = major_category)) +
+  geom_histogram(binwidth =  5000) +
+  facet_wrap(~ major_category) +
+  coord_flip()
+```
 
 Now that we've seen the shapes of the distributions of median incomes for each major category, we should have a better idea for which summary statistic to use to quantify the typical median income.
 
 6.  Which major category has the highest typical (you'll need to decide what this means) median income? Use the partial code below, filling it in with the appropriate statistic and function. Also note that we are looking for the highest statistic, so make sure to arrange in the correct direction.
 
-```{r eval=FALSE}
-college_recent_grads %>%
+```{r eval=TRUE}
+average_medians_ordered <- college_recent_grads %>%
   group_by(major_category) %>%
-  summarise(___ = ___(median)) %>%
-  arrange(___)
+  summarise(med = median(median)) %>%
+  arrange(desc(med))
+average_medians_ordered
 ```
+
+- *The major category with the highest average median income is `r slice(average_medians_ordered, 1)$major_category`, *
 
 7.  Which major category is the least popular in this sample? To answer this question we use a new function called `count`, which first groups the data and then counts the number of observations in each category (see below). Add to the pipeline appropriately to arrange the results so that the major with the lowest observations is on top.
 
-```{r}
-college_recent_grads %>%
-  count(major_category)
+```{r, eval=TRUE}
+majors_sort_unpopular <- college_recent_grads %>%
+  count(major_category) %>%
+  arrange(n)
+majors_sort_unpopular
 ```
+
+- *The least popular major category is `r slice(majors_sort_unpopular, 1)$major_category`, with `r slice(majors_sort_unpopular, 1)$n` observation(s).*
 
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards.*
 

@@ -261,6 +261,10 @@ For example, if earlier we were interested in the major with the highest unemplo
 <ol style="list-style-type: decimal">
 <li>Using what you’ve learned so far, arrange the data in descending order with respect to proportion of women in a major, and display only the major, the total number of people with major, and proportion of women. Show only the top 3 majors by adding <code>top_n(3)</code> at the end of the pipeline.</li>
 </ol>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">select</span>(major, total, sharewomen) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(sharewomen)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="fu">top_n</span>(<span class="dv">3</span>)</span></code></pre></div>
 </div>
 <div id="how-do-the-distributions-of-median-income-compare-across-major-categories" class="section level2">
 <h2>How do the distributions of median income compare across major categories?</h2>
@@ -273,6 +277,9 @@ These correspond to the 25th, 50th, and 75th percentiles of the income distribut
 <ol start="2" style="list-style-type: decimal">
 <li>Why do we often choose the median, rather than the mean, to describe the typical income of a group of people?</li>
 </ol>
+<ul>
+<li><em>Because, unlike the mean value, the median doesn’t change as much when a small number of extreme outliers are presented on one side of the distribution of the data. The mean would average them out with the rest, and would become quite skewed, while the median would only change as much as if the extra observations were added at the top side of the normal range of observations.</em></li>
+</ul>
 <p>The question we want to answer “How do the distributions of median income compare across major categories?”.
 We need to do a few things to answer this question: First, we need to group the data by <code>major_category</code>.
 Then, we need a way to summarize the distributions of median income within these groups.
@@ -281,8 +288,8 @@ So first, we need to visualize the data.</p>
 <p>We use the <code>ggplot()</code> function to do this.
 The first argument is the data frame, and the next argument gives the mapping of the variables of the data to the <code>aes</code>thetic elements of the plot.</p>
 <p>Let’s start simple and take a look at the distribution of all median incomes, without considering the major categories.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> college_recent_grads, <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> median)) <span class="sc">+</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> college_recent_grads, <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> median)) <span class="sc">+</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code></pre></div>
 <p>Along with the plot, we get a message:</p>
 <pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p>This is telling us that we might want to reconsider the binwidth we chose for our histogram – or more accurately, the binwidth we didn’t specify.
@@ -291,32 +298,99 @@ You might ask yourself: “What would be a meaningful difference in median incom
 <ol start="3" style="list-style-type: decimal">
 <li>Try binwidths of $1000 and $5000 and choose one. Explain your reasoning for your choice. Note that the binwidth is an argument for the <code>geom_histogram</code> function. So to specify a binwidth of $1000, you would use <code>geom_histogram(binwidth = 1000)</code>.</li>
 </ol>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">ggplot</span>(college_recent_grads, <span class="fu">aes</span>(<span class="at">x =</span> median)) <span class="sc">+</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span>  <span class="dv">5000</span>)</span></code></pre></div>
+<ul>
+<li><em>I chose the higher binwidth value of $5000 because, when viewed at a binwidth if $1000, there are gaps in the data in between many large peaks (especially notable around multiples of $10,000), while the overall distribution is more easily visible at a binwidth of $5000.</em></li>
+</ul>
 <p>We can also calculate summary statistics for this distribution using the <code>summarise</code> function:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">min =</span> <span class="fu">min</span>(median), <span class="at">max =</span> <span class="fu">max</span>(median),</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>            <span class="at">mean =</span> <span class="fu">mean</span>(median), <span class="at">med =</span> <span class="fu">median</span>(median),</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>            <span class="at">sd =</span> <span class="fu">sd</span>(median), </span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>            <span class="at">q1 =</span> <span class="fu">quantile</span>(median, <span class="at">probs =</span> <span class="fl">0.25</span>),</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>            <span class="at">q3 =</span> <span class="fu">quantile</span>(median, <span class="at">probs =</span> <span class="fl">0.75</span>))</span></code></pre></div>
-<ol start="4" style="list-style-type: decimal">
-<li><p>Based on the shape of the histogram you created in the previous exercise, determine which of these summary statistics is useful for describing the distribution.
-Write up your description (remember shape, center, spread, any unusual observations) and include the summary statistic output as well.</p></li>
-<li><p>Plot the distribution of <code>median</code> income using a histogram, faceted by <code>major_category</code>.
-Use the <code>binwidth</code> you chose in the earlier exercise.</p></li>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>recent_grads_summary <span class="ot">&lt;-</span> college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">min =</span> <span class="fu">min</span>(median), <span class="at">max =</span> <span class="fu">max</span>(median),</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>            <span class="at">mean =</span> <span class="fu">mean</span>(median), <span class="at">med =</span> <span class="fu">median</span>(median),</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>            <span class="at">sd =</span> <span class="fu">sd</span>(median), </span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>            <span class="at">q1 =</span> <span class="fu">quantile</span>(median, <span class="at">probs =</span> <span class="fl">0.25</span>),</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>            <span class="at">q3 =</span> <span class="fu">quantile</span>(median, <span class="at">probs =</span> <span class="fl">0.75</span>))</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>recent_grads_summary</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 7
+##     min    max   mean   med     sd    q1    q3
+##   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 22000 110000 40151. 36000 11470. 33000 45000</code></pre>
+<p>4.Based on the shape of the histogram you created in the previous exercise, determine which of these summary statistics is useful for describing the distribution.
+Write up your description (remember shape, center, spread, any unusual observations) and include the summary statistic output as well.</p>
+<ul>
+<li><p><em>The distribution of the graph is right-skewed, a fact which is exacerbated by the existence of a single outlier far to the right side of the graph. Because of the skewed-ness of this graph, using the median and quartiles would probably be a better idea than using the mean and standard deviation.</em></p></li>
+<li><p><em>The histogram is right-skewed, with a median of $36000 and an IQR of $12000. It also has an outlier at $110000, very far away from the next-highest value, significantly adding to the skew of the distribution.</em></p></li>
+</ul>
+<ol start="5" style="list-style-type: decimal">
+<li>Plot the distribution of <code>median</code> income using a histogram, faceted by <code>major_category</code>.
+Use the <code>binwidth</code> you chose in the earlier exercise.</li>
 </ol>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> median, <span class="at">fill =</span> major_category)) <span class="sc">+</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span>  <span class="dv">5000</span>) <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> major_category) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span></code></pre></div>
 <p>Now that we’ve seen the shapes of the distributions of median incomes for each major category, we should have a better idea for which summary statistic to use to quantify the typical median income.</p>
 <ol start="6" style="list-style-type: decimal">
 <li>Which major category has the highest typical (you’ll need to decide what this means) median income? Use the partial code below, filling it in with the appropriate statistic and function. Also note that we are looking for the highest statistic, so make sure to arrange in the correct direction.</li>
 </ol>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">group_by</span>(major_category) <span class="sc">%&gt;%</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">___ =</span> <span class="fu">___</span>(median)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="fu">arrange</span>(___)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>average_medians_ordered <span class="ot">&lt;-</span> college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">group_by</span>(major_category) <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">med =</span> <span class="fu">median</span>(median)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(med))</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>average_medians_ordered</span></code></pre></div>
+<pre><code>## # A tibble: 16 × 2
+##    major_category                        med
+##    &lt;chr&gt;                               &lt;dbl&gt;
+##  1 Engineering                         57000
+##  2 Computers &amp; Mathematics             45000
+##  3 Business                            40000
+##  4 Physical Sciences                   39500
+##  5 Social Science                      38000
+##  6 Biology &amp; Life Science              36300
+##  7 Law &amp; Public Policy                 36000
+##  8 Agriculture &amp; Natural Resources     35000
+##  9 Communications &amp; Journalism         35000
+## 10 Health                              35000
+## 11 Industrial Arts &amp; Consumer Services 35000
+## 12 Interdisciplinary                   35000
+## 13 Education                           32750
+## 14 Humanities &amp; Liberal Arts           32000
+## 15 Arts                                30750
+## 16 Psychology &amp; Social Work            30000</code></pre>
+<ul>
+<li><em>The major category with the highest average median income is Engineering, </em></li>
+</ul>
 <ol start="7" style="list-style-type: decimal">
 <li>Which major category is the least popular in this sample? To answer this question we use a new function called <code>count</code>, which first groups the data and then counts the number of observations in each category (see below). Add to the pipeline appropriately to arrange the results so that the major with the lowest observations is on top.</li>
 </ol>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">count</span>(major_category)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>majors_sort_unpopular <span class="ot">&lt;-</span> college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="fu">count</span>(major_category) <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="fu">arrange</span>(n)</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>majors_sort_unpopular</span></code></pre></div>
+<pre><code>## # A tibble: 16 × 2
+##    major_category                          n
+##    &lt;chr&gt;                               &lt;int&gt;
+##  1 Interdisciplinary                       1
+##  2 Communications &amp; Journalism             4
+##  3 Law &amp; Public Policy                     5
+##  4 Industrial Arts &amp; Consumer Services     7
+##  5 Arts                                    8
+##  6 Psychology &amp; Social Work                9
+##  7 Social Science                          9
+##  8 Agriculture &amp; Natural Resources        10
+##  9 Physical Sciences                      10
+## 10 Computers &amp; Mathematics                11
+## 11 Health                                 12
+## 12 Business                               13
+## 13 Biology &amp; Life Science                 14
+## 14 Humanities &amp; Liberal Arts              15
+## 15 Education                              16
+## 16 Engineering                            29</code></pre>
+<ul>
+<li><em>The least popular major category is Interdisciplinary, with 1 observation(s).</em></li>
+</ul>
 <p>🧶 ✅ ⬆️ Knit, <em>commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards.</em></p>
 </div>
 <div id="all-stem-fields-arent-the-same" class="section level2">
@@ -324,13 +398,13 @@ Use the <code>binwidth</code> you chose in the earlier exercise.</p></li>
 <p>One of the sections of the <a href="https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/">FiveThirtyEight story</a> is “All STEM fields aren’t the same”.
 Let’s see if this is true.</p>
 <p>First, let’s create a new vector called <code>stem_categories</code> that lists the major categories that are considered STEM fields.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>stem_categories <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Biology &amp; Life Science&quot;</span>,</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>                     <span class="st">&quot;Computers &amp; Mathematics&quot;</span>,</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>                     <span class="st">&quot;Engineering&quot;</span>,</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>                     <span class="st">&quot;Physical Sciences&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>stem_categories <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Biology &amp; Life Science&quot;</span>,</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>                     <span class="st">&quot;Computers &amp; Mathematics&quot;</span>,</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>                     <span class="st">&quot;Engineering&quot;</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>                     <span class="st">&quot;Physical Sciences&quot;</span>)</span></code></pre></div>
 <p>Then, we can use this to create a new variable in our data frame indicating whether a major is STEM or not.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>college_recent_grads <span class="ot">&lt;-</span> college_recent_grads <span class="sc">%&gt;%</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">major_type =</span> <span class="fu">ifelse</span>(major_category <span class="sc">%in%</span> stem_categories, <span class="st">&quot;stem&quot;</span>, <span class="st">&quot;not stem&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>college_recent_grads <span class="ot">&lt;-</span> college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">major_type =</span> <span class="fu">ifelse</span>(major_category <span class="sc">%in%</span> stem_categories, <span class="st">&quot;stem&quot;</span>, <span class="st">&quot;not stem&quot;</span>))</span></code></pre></div>
 <p>Let’s unpack this: with <code>mutate</code> we create a new variable called <code>major_type</code>, which is defined as <code>&quot;stem&quot;</code> if the <code>major_category</code> is in the vector called <code>stem_categories</code> we created earlier, and as <code>&quot;not stem&quot;</code> otherwise.</p>
 <p><code>%in%</code> is a <strong>logical operator</strong>.
 Other logical operators that are commonly used are</p>
@@ -385,11 +459,11 @@ Other logical operators that are commonly used are</p>
 </tbody>
 </table>
 <p>We can use the logical operators to also <code>filter</code> our data for STEM majors whose median earnings is less than median for all majors’ median earnings, which we found to be $36,000 earlier.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>    major_type <span class="sc">==</span> <span class="st">&quot;stem&quot;</span>,</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>    median <span class="sc">&lt;</span> <span class="dv">36000</span></span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>    major_type <span class="sc">==</span> <span class="st">&quot;stem&quot;</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>    median <span class="sc">&lt;</span> <span class="dv">36000</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  )</span></code></pre></div>
 <ol start="8" style="list-style-type: decimal">
 <li>Which STEM majors have median salaries equal to or less than the median for all majors’ median earnings? Your output should only show the major name and median, 25th percentile, and 75th percentile earning for that major as and should be sorted such that the major with the highest median earning is on top.</li>
 </ol>
