@@ -467,6 +467,13 @@ Other logical operators that are commonly used are</p>
 <ol start="8" style="list-style-type: decimal">
 <li>Which STEM majors have median salaries equal to or less than the median for all majors’ median earnings? Your output should only show the major name and median, 25th percentile, and 75th percentile earning for that major as and should be sorted such that the major with the highest median earning is on top.</li>
 </ol>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>college_recent_grads <span class="sc">%&gt;%</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>    major_type <span class="sc">==</span> <span class="st">&quot;stem&quot;</span>,</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>    median <span class="sc">&lt;=</span> <span class="fu">median</span>(median)</span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>  <span class="fu">select</span>(major, p25th, median, p75th) <span class="sc">%&gt;%</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(median))</span></code></pre></div>
 <p>🧶 ✅ ⬆️ Knit, <em>commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards.</em></p>
 </div>
 <div id="what-types-of-majors-do-women-tend-to-major-in" class="section level2">

@@ -258,7 +258,7 @@ Let's see if this is true.
 
 First, let's create a new vector called `stem_categories` that lists the major categories that are considered STEM fields.
 
-```{r}
+```{r eval=TRUE}
 stem_categories <- c("Biology & Life Science",
                      "Computers & Mathematics",
                      "Engineering",
@@ -267,7 +267,7 @@ stem_categories <- c("Biology & Life Science",
 
 Then, we can use this to create a new variable in our data frame indicating whether a major is STEM or not.
 
-```{r}
+```{r eval=TRUE}
 college_recent_grads <- college_recent_grads %>%
   mutate(major_type = ifelse(major_category %in% stem_categories, "stem", "not stem"))
 ```
@@ -301,6 +301,16 @@ college_recent_grads %>%
 ```
 
 8.  Which STEM majors have median salaries equal to or less than the median for all majors' median earnings? Your output should only show the major name and median, 25th percentile, and 75th percentile earning for that major as and should be sorted such that the major with the highest median earning is on top.
+
+```{r}
+college_recent_grads %>%
+  filter(
+    major_type == "stem",
+    median <= median(median)
+  ) %>%
+  select(major, p25th, median, p75th) %>%
+  arrange(desc(median))
+```
 
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards.*
 
