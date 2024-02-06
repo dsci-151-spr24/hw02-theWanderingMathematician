@@ -318,8 +318,32 @@ college_recent_grads %>%
 
 9.  Create a scatterplot of median income vs. proportion of women in that major, coloured by whether the major is in a STEM field or not. Describe the association between these three variables.
 
+```{r}
+college_recent_grads %>%
+  ggplot(aes(x = median, y = sharewomen, colour = major_type)) +
+  geom_point() +
+  labs(title = "College majors", subtitle = "by average income and proportion of women", x = "Average income", y = "Proportion of women in major", colour = "Major type")
+```
+
+- *In both STEM fields and non-STEM fields, there is a negative correlation between the proportion of women in the major and the average income. The correlation is more strongly negative for non-STEM fields than for STEM fields, but, on average, STEM fields have a lower proportion of women than non-STEM fields.*
+
 ## Further exploration
 
 10. Ask a question of interest to you, and answer it using summary statistic(s) and/or visualization(s).
+
+### *Expanding on the previous question,we ask, 'what is the relation between major category and proportion of women?'*
+
+```{r}
+college_recent_grads %>%
+  filter(median < 100000) %>% #Removing the engineering outlier.
+  group_by(major_category) %>% 
+  ggplot(aes(x = median, y = sharewomen, colour = major_category)) +
+  geom_point(size = 0.5, alpha = 0.3) +
+  facet_wrap(~ major_category) +
+  coord_flip() +
+  labs(title = "College majors", subtitle = "by average income and proportion of women", x = "Average income", y = "Proportion of women in major", colour = "Major category")
+```
+
+- *The major groups with the highest proportion of women in them seem to be Education, Health, Humanities & Liberal Arts, Psychology & Social Works, and Social Sciences, with Psychology and Education seeming to be the highest. There do not seem to be any groups with both high median incomes and proportion of women, while the other 3 corners and the center have major groups that cluster around them.*
 
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards and review the md document on GitHub to make sure you're happy with the final state of your work.*
